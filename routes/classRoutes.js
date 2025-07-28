@@ -1,43 +1,43 @@
 const express = require('express');
 const router = express.Router();
-const moduleController = require('../controllers/moduleController');
+const classController = require('../controllers/classController');
 const { verifyToken } = require('../middlewares/verifytoken');
 const { checkRole } = require('../middlewares/checkRole');
 
-// Managers and Admins can perform all CRUD operations on Modules
+
 router.post(
   '/',
   verifyToken,
   checkRole(['manager']),
-  moduleController.createModule
+  classController.createClass
 );
 
 router.get(
   '/',
   verifyToken,
-  checkRole(['manager','facilitator', 'student']), 
-  moduleController.getAllModules
+  checkRole(['manager', 'facilitator', 'student']), 
+  classController.getAllClasses
 );
 
 router.get(
   '/:id',
   verifyToken,
   checkRole(['manager', 'facilitator', 'student']), 
-  moduleController.getModuleById
+  classController.getClassById
 );
 
 router.put(
   '/:id',
   verifyToken,
   checkRole(['manager']),
-  moduleController.updateModule
+  classController.updateClass
 );
 
 router.delete(
   '/:id',
   verifyToken,
   checkRole(['manager']),
-  moduleController.deleteModule
+  classController.deleteClass
 );
 
 module.exports = router;
