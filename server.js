@@ -8,11 +8,15 @@ const PORT = process.env.PORT || 5050;
 const authRoutes = require('./routes/auth');
 const moduleRoutes = require('./routes/moduleRoutes');
 const classRoutes = require('./routes/classRoutes');
+const facilitatorRoutes = require('./routes/facilitatorRoutes');
+const studentRoutes = require('./routes/studentRoutes');
 
 app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/modules', moduleRoutes);
 app.use('/api/classes', classRoutes);
+app.use('/api/facilitators', facilitatorRoutes);
+app.use('/api/students', studentRoutes);
 
 
 
