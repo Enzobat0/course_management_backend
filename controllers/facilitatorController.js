@@ -3,6 +3,12 @@ const { Facilitator, User, Manager } = require('../models');
 // Get all Facilitators
 exports.getAllFacilitators = async (req, res) => {
   try {
+    let whereClause = {}; 
+    let includeClause = [ 
+      { model: User, attributes: ['id', 'email', 'role'] },
+      { model: Manager, attributes: ['id', 'name'] },
+    ];
+
     const facilitators = await Facilitator.findAll({
       where: whereClause,
       include: includeClause,

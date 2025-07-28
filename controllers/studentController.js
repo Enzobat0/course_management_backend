@@ -4,14 +4,19 @@ const { Student, User, Class, Cohort } = require('../models');
 exports.getAllStudents = async (req, res) => {
   try {
     const { role, id: currentUserId } = req.user;
+    let whereClause = {}; 
+    let includeClause = [
+      { model: User, attributes: ['id', 'email', 'role'] },
+      { model: Class, attributes: ['id', 'name'] },
+      { model: Cohort, attributes: ['id', 'name'] },
+    ];
 
-    // Students can only see their own profile in this "get all" context if restricted.
-    // Managers/Admins see all.
     if (role === 'student') {
       const studentProfile = await Student.findOne({ where: { userId: currentUserId } });
       if (!studentProfile) {
         return res.status(404).json({ message: 'Student profile not found for this user.' });
       }
+      whereClause.id = studentProfile.id;
     }
 
     const students = await Student.findAll({
