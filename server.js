@@ -1,11 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const sequelize = require('./config/database');
-const User = require('./models/userModel');
-const Facilitator = require('./models/facilitatorModel');
-const Manager = require('./models/managerModel');
-const Student = require('./models/studentModel');
-
+const { sequelize } = require('./models'); 
 dotenv.config();
 
 const app = express();
@@ -18,7 +13,7 @@ app.use('/api/auth', authRoutes);
 
 
 
-sequelize.sync()
+sequelize.sync({force:true})
 .then(() => {
   console.log('Database synced with user and role models created!');
 })

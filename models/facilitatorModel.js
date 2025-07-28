@@ -1,9 +1,8 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
-const User = require('./userModel');
-const Manager = require('./managerModel');
 
-const Facilitator = sequelize.define('Facilitator', {
+module.exports = (sequelize, DataTypes) => {
+    const Facilitator = sequelize.define('Facilitator', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
@@ -28,17 +27,13 @@ const Facilitator = sequelize.define('Facilitator', {
   userId: {
     type: DataTypes.UUID,
     allowNull: false,
-    references: {
-      model: User,
-      key: 'id'
-    }
   }
 }, {
   tableName: 'facilitators'
 });
+return Facilitator;
+}
 
-User.hasOne(Facilitator, { foreignKey: 'userId' });
-Facilitator.belongsTo(User, { foreignKey: 'userId' });
-Facilitator.belongsTo(Manager, { foreignKey: 'managerId' });
 
-module.exports = Facilitator;
+
+
