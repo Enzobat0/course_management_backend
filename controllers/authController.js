@@ -1,9 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const User = require('../models/userModel');
-const Manager = require('../models/managerModel');
-const Facilitator = require('../models/facilitatorModel');
-const Student = require('../models/studentModel');
+const { User, Manager, Facilitator, Student } = require('../models');
 require('dotenv').config();
 
 const register = async (req, res) => {

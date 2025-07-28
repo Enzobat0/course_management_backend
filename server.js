@@ -13,7 +13,7 @@ app.use('/api/auth', authRoutes);
 
 
 
-sequelize.sync({force:true})
+sequelize.sync()
 .then(() => {
   console.log('Database synced with user and role models created!');
 })
