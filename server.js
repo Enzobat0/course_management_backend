@@ -10,6 +10,7 @@ const moduleRoutes = require('./routes/moduleRoutes');
 const classRoutes = require('./routes/classRoutes');
 const facilitatorRoutes = require('./routes/facilitatorRoutes');
 const studentRoutes = require('./routes/studentRoutes');
+const activityTrackerRoutes = require('./routes/activityTrackerRoutes');
 
 app.use(express.json());
 app.use('/api/auth', authRoutes);
@@ -17,6 +18,7 @@ app.use('/api/modules', moduleRoutes);
 app.use('/api/classes', classRoutes);
 app.use('/api/facilitators', facilitatorRoutes);
 app.use('/api/students', studentRoutes);
+app.use('/api/activity-tracker', activityTrackerRoutes);
 
 
 

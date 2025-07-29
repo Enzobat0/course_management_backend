@@ -10,6 +10,7 @@ const ClassModel = require('./classModel');
 const CohortModel = require('./cohortModel');
 const ModeModel = require('./modeModel');
 const AllocationModel = require('./allocationsModel');
+const ActivityTrackerModel = require('./activityTrackerModel');
 
 // 🔄 Initialize models
 const User = UserModel(sequelize, Sequelize.DataTypes);
@@ -21,6 +22,9 @@ const Class = ClassModel(sequelize, Sequelize.DataTypes);
 const Cohort = CohortModel(sequelize, Sequelize.DataTypes);
 const Mode = ModeModel(sequelize, Sequelize.DataTypes);
 const Allocation = AllocationModel(sequelize, Sequelize.DataTypes);
+const ActivityTracker = ActivityTrackerModel(sequelize, Sequelize.DataTypes);
+
+
 
 //Define Relationships
 
@@ -58,6 +62,10 @@ Allocation.belongsTo(Facilitator, { foreignKey: 'facilitatorId' });
 Mode.hasMany(Allocation, { foreignKey: 'modeId' });
 Allocation.belongsTo(Mode, { foreignKey: 'modeId' });
 
+// ─── ActivityTracker Relationships ───────────────────────────
+Allocation.hasMany(ActivityTracker, { foreignKey: 'allocationId' });
+ActivityTracker.belongsTo(Allocation, { foreignKey: 'allocationId' });
+
 
 //Export all models
 module.exports = {
@@ -71,5 +79,6 @@ module.exports = {
   Class,
   Cohort,
   Mode,
-  Allocation
+  Allocation,
+  ActivityTracker
 };
