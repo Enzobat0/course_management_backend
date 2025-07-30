@@ -1,6 +1,9 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const { sequelize } = require('./models'); 
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swaggerConfig');
+
 dotenv.config();
 
 const app = express();
@@ -12,10 +15,14 @@ const facilitatorRoutes = require('./routes/facilitatorRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const allocationsRoutes = require('./routes/allocationsRoutes');
 const activityTrackerRoutes = require('./routes/activityTrackerRoutes');
+
 const { connectRedis } = require('./config/redisclient');
 const { startSchedulers } = require('./tasks/reminderScheduler');
 
 app.use(express.json());
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 app.use('/api/auth', authRoutes);
 app.use('/api/modules', moduleRoutes);
 app.use('/api/classes', classRoutes);

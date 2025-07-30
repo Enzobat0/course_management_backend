@@ -1,6 +1,46 @@
 const { Student, User, Class, Cohort } = require('../models');
 
-// Get all Students
+/**
+ * @swagger
+ * /api/students:
+ * get:
+ * summary: Retrieve all students
+ * description: Managers can view all students. Students can only view their own profile.
+ * tags:
+ * - Students
+ * security:
+ * - bearerAuth: []
+ * responses:
+ * 200:
+ * description: A list of students.
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * message: { type: 'string', example: 'Students fetched successfully' }
+ * count: { type: 'integer', example: 1 }
+ * students:
+ * type: array
+ * items:
+ * type: object
+ * properties:
+ * id: { type: 'string', format: 'uuid' }
+ * name: { type: 'string' }
+ * classId: { type: 'string', format: 'uuid', nullable: true }
+ * cohortId: { type: 'string', format: 'uuid', nullable: true }
+ * User: { $ref: '#/components/schemas/User' }
+ * Class: { $ref: '#/components/schemas/Class' }
+ * Cohort: { $ref: '#/components/schemas/Cohort' }
+ * 401:
+ * description: Unauthorized.
+ * 403:
+ * description: Forbidden. Only managers can view all students.
+ * 404:
+ * description: Student profile not found (if role is student).
+ * 500:
+ * description: Server error.
+ */
 exports.getAllStudents = async (req, res) => {
   try {
     const { role, id: currentUserId } = req.user;
@@ -36,7 +76,51 @@ exports.getAllStudents = async (req, res) => {
   }
 };
 
-// Get Student by ID
+/**
+ * @swagger
+ * /api/students/{id}:
+ * get:
+ * summary: Retrieve a single student by ID
+ * description: Managers can view any student. Students can only view their own profile.
+ * tags:
+ * - Students
+ * security:
+ * - bearerAuth: []
+ * parameters:
+ * - in: path
+ * name: id
+ * required: true
+ * schema:
+ * type: string
+ * format: uuid
+ * description: The ID of the student to retrieve.
+ * responses:
+ * 200:
+ * description: A single student object.
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * student:
+ * type: object
+ * properties:
+ * id: { type: 'string', format: 'uuid' }
+ * name: { type: 'string' }
+ * classId: { type: 'string', format: 'uuid', nullable: true }
+ * cohortId: { type: 'string', format: 'uuid', nullable: true }
+ * User: { $ref: '#/components/schemas/User' }
+ * Class: { $ref: '#/components/schemas/Class' }
+ * Cohort: { $ref: '#/components/schemas/Cohort' }
+ * 401:
+ * description: Unauthorized.
+ * 403:
+ * description: Forbidden. You can only view your own student profile.
+ * 404:
+ * description: Student not found.
+ * 500:
+ * description: Server error.
+ */
 exports.getStudentById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -54,7 +138,7 @@ exports.getStudentById = async (req, res) => {
       return res.status(404).json({ message: 'Student not found.' });
     }
 
-    // Access control: Students can only view their own profile
+    // Students can only view their own profile
     if (role === 'student' && student.userId !== currentUserId) {
       return res.status(403).json({ message: 'Forbidden: You can only view your own student profile.' });
     }
@@ -66,7 +150,66 @@ exports.getStudentById = async (req, res) => {
   }
 };
 
-// Update a Student
+/**
+ * @swagger
+ * /api/students/{id}:
+ * put:
+ * summary: Update an existing student's details
+ * description: Managers can update any student. Students can only update their own name.
+ * tags:
+ * - Students
+ * security:
+ * - bearerAuth: []
+ * parameters:
+ * - in: path
+ * name: id
+ * required: true
+ * schema:
+ * type: string
+ * format: uuid
+ * description: The ID of the student to update.
+ * requestBody:
+ * required: true
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * name:
+ * type: string
+ * description: New name of the student.
+ * example: "Jane Smith"
+ * classId:
+ * type: string
+ * format: uuid
+ * description: (Manager only) New class ID for the student.
+ * example: "b2c3d4e5-f6a7-8901-2345-67890abcdef0"
+ * cohortId:
+ * type: string
+ * format: uuid
+ * description: (Manager only) New cohort ID for the student.
+ * example: "c3d4e5f6-a7b8-9012-3456-7890abcdef01"
+ * responses:
+ * 200:
+ * description: Student updated successfully.
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * message: { type: 'string', example: 'Student updated successfully' }
+ * student: { $ref: '#/components/schemas/Student' }
+ * 400:
+ * description: Bad request (e.g., invalid input).
+ * 401:
+ * description: Unauthorized.
+ * 403:
+ * description: Forbidden. User does not have permission to update this profile.
+ * 404:
+ * description: Student not found.
+ * 500:
+ * description: Server error.
+ */
 exports.updateStudent = async (req, res) => {
   try {
     const { id } = req.params;
@@ -78,7 +221,7 @@ exports.updateStudent = async (req, res) => {
       return res.status(404).json({ message: 'Student not found.' });
     }
 
-    // Access control: Students can only update their own profile
+    // Students can only update their own profile
     if (role === 'student' && student.userId !== currentUserId) {
       return res.status(403).json({ message: 'Forbidden: You can only update your own student profile.' });
     }
@@ -104,7 +247,42 @@ exports.updateStudent = async (req, res) => {
   }
 };
 
-// Delete a Student
+/**
+ * @swagger
+ * /api/students/{id}:
+ * delete:
+ * summary: Delete a student by ID
+ * description: Only managers can delete students.
+ * tags:
+ * - Students
+ * security:
+ * - bearerAuth: []
+ * parameters:
+ * - in: path
+ * name: id
+ * required: true
+ * schema:
+ * type: string
+ * format: uuid
+ * description: The ID of the student to delete.
+ * responses:
+ * 200:
+ * description: Student deleted successfully.
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * message: { type: 'string', example: 'Student deleted successfully.' }
+ * 401:
+ * description: Unauthorized.
+ * 403:
+ * description: Forbidden. Only managers can delete students.
+ * 404:
+ * description: Student not found.
+ * 500:
+ * description: Server error.
+ */
 exports.deleteStudent = async (req, res) => {
   try {
     const { id } = req.params;

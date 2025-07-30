@@ -1,6 +1,54 @@
 const { Module } = require('../models'); 
 
-// Create a new Module
+/**
+ * @swagger
+ * /api/modules:
+ * post:
+ * summary: Create a new module (course)
+ * description: Only managers can create new modules.
+ * tags:
+ * - Modules
+ * security:
+ * - bearerAuth: []
+ * requestBody:
+ * required: true
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * required:
+ * - name
+ * - half
+ * properties:
+ * name:
+ * type: string
+ * description: Name of the module (course).
+ * example: "Mathematics 101"
+ * half:
+ * type: string
+ * description: Intake period (e.g., HT1, HT2, FT).
+ * example: "HT1"
+ * responses:
+ * 201:
+ * description: Module created successfully.
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * message: { type: 'string', example: 'Module created successfully' }
+ * module: { $ref: '#/components/schemas/Module' }
+ * 400:
+ * description: Bad request (e.g., missing required fields).
+ * 401:
+ * description: Unauthorized.
+ * 403:
+ * description: Forbidden. Only managers can create modules.
+ * 409:
+ * description: Conflict. Module with this name already exists.
+ * 500:
+ * description: Server error.
+ */
 exports.createModule = async (req, res) => {
   try {
     const { name, half } = req.body;
@@ -9,7 +57,7 @@ exports.createModule = async (req, res) => {
       return res.status(400).json({ message: 'Module name and half (intake) are required.' });
     }
 
-    //  Check for existing module name to prevent duplicates
+    
     const existingModule = await Module.findOne({ where: { name } });
     if (existingModule) {
       return res.status(409).json({ message: 'Module with this name already exists.' });
@@ -26,11 +74,42 @@ exports.createModule = async (req, res) => {
   }
 };
 
-// Get all Modules
+/**
+ * @swagger
+ * /api/modules:
+ * get:
+ * summary: Retrieve all modules (courses)
+ * description: Managers can view all modules.
+ * tags:
+ * - Modules
+ * security:
+ * - bearerAuth: []
+ * responses:
+ * 200:
+ * description: A list of modules.
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * message: { type: 'string', example: 'Modules fetched successfully' }
+ * count: { type: 'integer', example: 1 }
+ * modules:
+ * type: array
+ * items:
+ * $ref: '#/components/schemas/Module'
+ * 401:
+ * description: Unauthorized.
+ * 403:
+ * description: Forbidden. Only managers can view modules.
+ * 500:
+ * description: Server error.
+ */
 exports.getAllModules = async (req, res) => {
   try {
+    // Assuming 'whereClause' is intended to be empty or handled by other logic
+    // If you intend to filter modules, add parameters and logic here.
     const modules = await Module.findAll({
-      where: whereClause,
       order: [['name', 'ASC']], 
     });
 
@@ -45,42 +124,130 @@ exports.getAllModules = async (req, res) => {
   }
 };
 
-// Get Module by ID
+/**
+ * @swagger
+ * /api/modules/{id}:
+ * get:
+ * summary: Retrieve a single module by ID
+ * description: Managers can view any module by its ID.
+ * tags:
+ * - Modules
+ * security:
+ * - bearerAuth: []
+ * parameters:
+ * - in: path
+ * name: id
+ * required: true
+ * schema:
+ * type: string
+ * format: uuid
+ * description: The ID of the module to retrieve.
+ * responses:
+ * 200:
+ * description: A single module object.
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * module: { $ref: '#/components/schemas/Module' }
+ * 401:
+ * description: Unauthorized.
+ * 403:
+ * description: Forbidden. Only managers can view modules.
+ * 404:
+ * description: Module not found.
+ * 500:
+ * description: Server error.
+ */
 exports.getModuleById = async (req, res) => {
   try {
     const { id } = req.params;
-    const module = await Module.findByPk(id);
+    const moduleItem = await Module.findByPk(id);
 
-    if (!module) {
+    if (!moduleItem) {
       return res.status(404).json({ message: 'Module not found.' });
     }
 
-    res.status(200).json({ module });
+    res.status(200).json({ module: moduleItem });
   } catch (error) {
     console.error('Error fetching module by ID:', error);
     res.status(500).json({ message: 'Server error fetching module.' });
   }
 };
 
-// Update a Module
+/**
+ * @swagger
+ * /api/modules/{id}:
+ * put:
+ * summary: Update an existing module
+ * description: Only managers can update modules.
+ * tags:
+ * - Modules
+ * security:
+ * - bearerAuth: []
+ * parameters:
+ * - in: path
+ * name: id
+ * required: true
+ * schema:
+ * type: string
+ * format: uuid
+ * description: The ID of the module to update.
+ * requestBody:
+ * required: true
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * name:
+ * type: string
+ * description: New name of the module.
+ * example: "Advanced Mathematics"
+ * half:
+ * type: string
+ * description: New intake period.
+ * example: "FT"
+ * responses:
+ * 200:
+ * description: Module updated successfully.
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * message: { type: 'string', example: 'Module updated successfully' }
+ * module: { $ref: '#/components/schemas/Module' }
+ * 400:
+ * description: Bad request (e.g., invalid input).
+ * 401:
+ * description: Unauthorized.
+ * 403:
+ * description: Forbidden. Only managers can update modules.
+ * 404:
+ * description: Module not found.
+ * 500:
+ * description: Server error.
+ */
 exports.updateModule = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, half } = req.body;
 
-    const module = await Module.findByPk(id);
-    if (!module) {
+    const moduleItem = await Module.findByPk(id);
+    if (!moduleItem) {
       return res.status(404).json({ message: 'Module not found.' });
     }
 
-    await module.update({
-      name: name || module.name,
-      half: half || module.half,
+    await moduleItem.update({
+      name: name || moduleItem.name,
+      half: half || moduleItem.half,
     });
 
     res.status(200).json({
       message: 'Module updated successfully',
-      module,
+      module: moduleItem,
     });
   } catch (error) {
     console.error('Error updating module:', error);
@@ -88,17 +255,52 @@ exports.updateModule = async (req, res) => {
   }
 };
 
-// Delete a Module
+/**
+ * @swagger
+ * /api/modules/{id}:
+ * delete:
+ * summary: Delete a module by ID
+ * description: Only managers can delete modules.
+ * tags:
+ * - Modules
+ * security:
+ * - bearerAuth: []
+ * parameters:
+ * - in: path
+ * name: id
+ * required: true
+ * schema:
+ * type: string
+ * format: uuid
+ * description: The ID of the module to delete.
+ * responses:
+ * 200:
+ * description: Module deleted successfully.
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * message: { type: 'string', example: 'Module deleted successfully.' }
+ * 401:
+ * description: Unauthorized.
+ * 403:
+ * description: Forbidden. Only managers can delete modules.
+ * 404:
+ * description: Module not found.
+ * 500:
+ * description: Server error.
+ */
 exports.deleteModule = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const module = await Module.findByPk(id);
-    if (!module) {
+    const moduleItem = await Module.findByPk(id);
+    if (!moduleItem) {
       return res.status(404).json({ message: 'Module not found.' });
     }
 
-    await module.destroy();
+    await moduleItem.destroy();
     res.status(200).json({ message: 'Module deleted successfully.' });
   } catch (error) {
     console.error('Error deleting module:', error);

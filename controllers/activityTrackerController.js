@@ -5,7 +5,100 @@ const { getManagerEmails } = require('../services/managerService');
 
 const isValidStatus = (status) => ['Done', 'Pending', 'Not Started'].includes(status);
 
-// Create Activity Log
+/**
+ * @swagger
+ * /api/activity-tracker:
+ * post:
+ * summary: Create a new activity log
+ * description: Facilitators can submit activity logs for their assigned courses. Managers and Admins can also create logs.
+ * tags:
+ * - Activity Tracker
+ * security:
+ * - bearerAuth: []
+ * requestBody:
+ * required: true
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * required:
+ * - allocationId
+ * - weekNumber
+ * - formativeOneGrading
+ * - formativeTwoGrading
+ * - summativeGrading
+ * - courseModeration
+ * - intranetSync
+ * - gradeBookStatus
+ * properties:
+ * allocationId:
+ * type: string
+ * format: uuid
+ * description: The ID of the course allocation this log belongs to.
+ * example: "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+ * attendance:
+ * type: array
+ * items:
+ * type: object
+ * description: JSON array storing attendance status for each week (e.g., [{"week1": "Done"}]).
+ * example: [{"week1": "done"}, {"week2": "pending"}]
+ * weekNumber:
+ * type: integer
+ * description: The specific week number the activity log covers.
+ * example: 1
+ * formativeOneGrading:
+ * type: string
+ * enum: [Done, Pending, Not Started]
+ * description: Status of formative assignment 1 grading.
+ * example: "Done"
+ * formativeTwoGrading:
+ * type: string
+ * enum: [Done, Pending, Not Started]
+ * description: Status of formative assignment 2 grading.
+ * example: "Pending"
+ * summativeGrading:
+ * type: string
+ * enum: [Done, Pending, Not Started]
+ * description: Status of summative assignment grading.
+ * example: "Not Started"
+ * courseModeration:
+ * type: string
+ * enum: [Done, Pending, Not Started]
+ * description: Status of course moderation.
+ * example: "Pending"
+ * intranetSync:
+ * type: string
+ * enum: [Done, Pending, Not Started]
+ * description: Status of intranet synchronization.
+ * example: "Not Started"
+ * gradeBookStatus:
+ * type: string
+ * enum: [Done, Pending, Not Started]
+ * description: Status of grade book updates.
+ * example: "Not Started"
+ * responses:
+ * 201:
+ * description: Activity log created successfully.
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * message: { type: 'string', example: 'Activity log created successfully' }
+ * activityLog: { $ref: '#/components/schemas/ActivityTracker' }
+ * 400:
+ * description: Bad request (e.g., missing required fields, invalid status value).
+ * 401:
+ * description: Unauthorized. Invalid or missing token.
+ * 403:
+ * description: Forbidden. User does not have permission or is not assigned to the allocation.
+ * 404:
+ * description: Allocation not found.
+ * 409:
+ * description: Conflict. Activity log for this allocation and week number already exists.
+ * 500:
+ * description: Server error.
+ */
 exports.createActivityLog = async (req, res) => {
   try {
     const { allocationId, attendance, weekNumber, formativeOneGrading,
@@ -86,7 +179,65 @@ exports.createActivityLog = async (req, res) => {
   }
 };
 
-// Get All Activity Logs 
+/**
+ * @swagger
+ * /api/activity-tracker:
+ * get:
+ * summary: Retrieve all activity logs
+ * description: Managers can view all activity logs. Facilitators can only view logs for their assigned allocations.
+ * tags:
+ * - Activity Tracker
+ * security:
+ * - bearerAuth: []
+ * parameters:
+ * - in: query
+ * name: allocationId
+ * schema:
+ * type: string
+ * format: uuid
+ * description: Filter logs by a specific allocation ID.
+ * - in: query
+ * name: weekNumber
+ * schema:
+ * type: integer
+ * description: Filter logs by week number.
+ * - in: query
+ * name: status
+ * schema:
+ * type: string
+ * enum: [Done, Pending, Not Started]
+ * description: Filter logs by a generic status across all grading/sync fields.
+ * - in: query
+ * name: facilitatorId
+ * schema:
+ * type: string
+ * format: uuid
+ * description: (Manager only) Filter logs by a specific facilitator ID.
+ * responses:
+ * 200:
+ * description: A list of activity logs.
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * message: { type: 'string', example: 'Activity logs fetched successfully' }
+ * count: { type: 'integer', example: 1 }
+ * activityLogs:
+ * type: array
+ * items:
+ * $ref: '#/components/schemas/ActivityTracker'
+ * 400:
+ * description: Bad request (e.g., invalid status filter).
+ * 401:
+ * description: Unauthorized. Invalid or missing token.
+ * 403:
+ * description: Forbidden. User does not have permission.
+ * 404:
+ * description: Facilitator profile not found (if role is facilitator).
+ * 500:
+ * description: Server error.
+ */
 exports.getAllActivityLogs = async (req, res) => {
   try {
     const { role, id: currentUserId } = req.user;
@@ -166,7 +317,42 @@ exports.getAllActivityLogs = async (req, res) => {
   }
 };
 
-// Get Activity Log by ID
+/**
+ * @swagger
+ * /api/activity-tracker/{id}:
+ * get:
+ * summary: Retrieve a single activity log by ID
+ * description: Managers can view any activity log. Facilitators can only view their own activity logs.
+ * tags:
+ * - Activity Tracker
+ * security:
+ * - bearerAuth: []
+ * parameters:
+ * - in: path
+ * name: id
+ * required: true
+ * schema:
+ * type: string
+ * format: uuid
+ * description: The ID of the activity log to retrieve.
+ * responses:
+ * 200:
+ * description: A single activity log object.
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * activityLog: { $ref: '#/components/schemas/ActivityTracker' }
+ * 401:
+ * description: Unauthorized.
+ * 403:
+ * description: Forbidden. You can only view your own activity logs.
+ * 404:
+ * description: Activity log not found.
+ * 500:
+ * description: Server error.
+ */
 exports.getActivityLogById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -206,7 +392,92 @@ exports.getActivityLogById = async (req, res) => {
   }
 };
 
-// Update Activity Log
+/**
+ * @swagger
+ * /api/activity-tracker/{id}:
+ * put:
+ * summary: Update an existing activity log
+ * description: Facilitators can update their own activity logs. Managers can update any log.
+ * tags:
+ * - Activity Tracker
+ * security:
+ * - bearerAuth: []
+ * parameters:
+ * - in: path
+ * name: id
+ * required: true
+ * schema:
+ * type: string
+ * format: uuid
+ * description: The ID of the activity log to update.
+ * requestBody:
+ * required: true
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * attendance:
+ * type: array
+ * items:
+ * type: object
+ * description: JSON array storing attendance status for each week.
+ * example: [{"week1": "done"}, {"week2": "pending"}]
+ * weekNumber:
+ * type: integer
+ * description: The specific week number the activity log covers.
+ * example: 1
+ * formativeOneGrading:
+ * type: string
+ * enum: [Done, Pending, Not Started]
+ * description: Status of formative assignment 1 grading.
+ * example: "Done"
+ * formativeTwoGrading:
+ * type: string
+ * enum: [Done, Pending, Not Started]
+ * description: Status of formative assignment 2 grading.
+ * example: "Pending"
+ * summativeGrading:
+ * type: string
+ * enum: [Done, Pending, Not Started]
+ * description: Status of summative assignment grading.
+ * example: "Not Started"
+ * courseModeration:
+ * type: string
+ * enum: [Done, Pending, Not Started]
+ * description: Status of course moderation.
+ * example: "Pending"
+ * intranetSync:
+ * type: string
+ * enum: [Done, Pending, Not Started]
+ * description: Status of intranet synchronization.
+ * example: "Not Started"
+ * gradeBookStatus:
+ * type: string
+ * enum: [Done, Pending, Not Started]
+ * description: Status of grade book updates.
+ * example: "Not Started"
+ * responses:
+ * 200:
+ * description: Activity log updated successfully.
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * message: { type: 'string', example: 'Activity log updated successfully' }
+ * activityLog: { $ref: '#/components/schemas/ActivityTracker' }
+ * 400:
+ * description: Bad request (e.g., invalid status value).
+ * 401:
+ * description: Unauthorized.
+ * 403:
+ * description: Forbidden. User does not have permission or is not assigned to the allocation.
+ * 404:
+ * description: Activity log not found.
+ * 500:
+ * description: Server error.
+ */
 exports.updateActivityLog = async (req, res) => {
   try {
     const { id } = req.params;
@@ -290,7 +561,42 @@ exports.updateActivityLog = async (req, res) => {
   }
 };
 
-// Delete Activity Log
+/**
+ * @swagger
+ * /api/activity-tracker/{id}:
+ * delete:
+ * summary: Delete an activity log by ID
+ * description: Facilitators can delete their own activity logs. Managers can delete any log.
+ * tags:
+ * - Activity Tracker
+ * security:
+ * - bearerAuth: []
+ * parameters:
+ * - in: path
+ * name: id
+ * required: true
+ * schema:
+ * type: string
+ * format: uuid
+ * description: The ID of the activity log to delete.
+ * responses:
+ * 200:
+ * description: Activity log deleted successfully.
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * message: { type: 'string', example: 'Activity log deleted successfully.' }
+ * 401:
+ * description: Unauthorized.
+ * 403:
+ * description: Forbidden. User does not have permission or is not assigned to the allocation.
+ * 404:
+ * description: Activity log not found.
+ * 500:
+ * description: Server error.
+ */
 exports.deleteActivityLog = async (req, res) => {
   try {
     const { id } = req.params;

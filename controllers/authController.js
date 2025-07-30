@@ -3,6 +3,85 @@ const jwt = require('jsonwebtoken');
 const { User, Manager, Facilitator, Student } = require('../models');
 require('dotenv').config();
 
+/**
+ * @swagger
+ * /api/auth/register:
+ * post:
+ * summary: Register a new user (Manager, Facilitator, or Student)
+ * description: Registers a new user with a specified role and creates their associated profile.
+ * tags:
+ * - Authentication
+ * requestBody:
+ * required: true
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * required:
+ * - email
+ * - password
+ * - role
+ * - name
+ * properties:
+ * email:
+ * type: string
+ * format: email
+ * description: User's email address.
+ * example: "newuser@example.com"
+ * password:
+ * type: string
+ * format: password
+ * description: User's password.
+ * example: "securepassword123"
+ * role:
+ * type: string
+ * enum: [manager, facilitator, student]
+ * description: The role of the user.
+ * example: "facilitator"
+ * name:
+ * type: string
+ * description: Name of the user (required for all roles).
+ * example: "John Doe"
+ * qualification:
+ * type: string
+ * description: (Facilitator only) Facilitator's qualification.
+ * example: "MSc in Education"
+ * location:
+ * type: string
+ * description: (Facilitator only) Facilitator's location.
+ * example: "New York"
+ * managerId:
+ * type: string
+ * format: uuid
+ * description: (Facilitator only) ID of the manager overseeing this facilitator.
+ * example: "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+ * classId:
+ * type: string
+ * format: uuid
+ * description: (Student only) ID of the class the student belongs to.
+ * example: "b2c3d4e5-f6a7-8901-2345-67890abcdef0"
+ * cohortId:
+ * type: string
+ * format: uuid
+ * description: (Student only) ID of the cohort the student belongs to.
+ * example: "c3d4e5f6-a7b8-9012-3456-7890abcdef01"
+ * responses:
+ * 201:
+ * description: User registered successfully.
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * message: { type: 'string', example: 'facilitator registered successfully' }
+ * user: { $ref: '#/components/schemas/User' }
+ * 400:
+ * description: Bad request (e.g., missing required fields, invalid role).
+ * 409:
+ * description: Conflict. User with this email already exists.
+ * 500:
+ * description: Server error during registration.
+ */
 const register = async (req, res) => {
   try {
     const { email, password, role } = req.body;
@@ -87,6 +166,55 @@ const register = async (req, res) => {
   }
 };
 
+/**
+ * @swagger
+ * /api/auth/login:
+ * post:
+ * summary: Log in a user
+ * description: Authenticates a user with email and password and returns a JWT token.
+ * tags:
+ * - Authentication
+ * requestBody:
+ * required: true
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * required:
+ * - email
+ * - password
+ * properties:
+ * email:
+ * type: string
+ * format: email
+ * description: User's email address.
+ * example: "user@example.com"
+ * password:
+ * type: string
+ * format: password
+ * description: User's password.
+ * example: "password123"
+ * responses:
+ * 200:
+ * description: Login successful, returns JWT token and user info.
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * message: { type: 'string', example: 'Login successful' }
+ * token:
+ * type: string
+ * description: JWT authentication token.
+ * example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ * user: { $ref: '#/components/schemas/User' }
+ * 401:
+ * description: Unauthorized. Invalid credentials.
+ * 404:
+ * description: User not found.
+ * 500:
+ * description: Server error during login.
+ */
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;

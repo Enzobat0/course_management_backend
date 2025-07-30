@@ -33,7 +33,3 @@ module.exports = (sequelize, DataTypes) => {
 });
 return Facilitator;
 }
-
-
-
-
