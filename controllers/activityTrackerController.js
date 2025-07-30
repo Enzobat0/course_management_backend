@@ -142,7 +142,7 @@ exports.getAllActivityLogs = async (req, res) => {
       return res.status(403).json({ message: 'Forbidden: You do not have permission to view activity logs.' });
     }
 
-    // Apply allocationWhereClause to the include object
+    
     if (Object.keys(allocationWhereClause).length > 0) {
       includeClause[0].where = allocationWhereClause;
       includeClause[0].required = true; 
@@ -304,7 +304,7 @@ exports.deleteActivityLog = async (req, res) => {
       return res.status(404).json({ message: 'Activity log not found.' });
     }
 
-    // Facilitator access control: Must be the assigned facilitator for this log's allocation
+    // Facilitator access control, must be the assigned facilitator for this log's allocation
     if (role === 'facilitator') {
       const facilitatorProfile = await Facilitator.findOne({ where: { userId: currentUserId } });
       // Need to ensure activityLog.Allocation and activityLog.Allocation.Facilitator exist

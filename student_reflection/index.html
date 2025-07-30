@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">Student Reflection</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <select id="languageSwitcher">
+        <option value="en">🇬🇧 English</option>
+        <option value="fr">🇫🇷 Français</option>
+        <option value="es">🇪🇸 Español</option>
+    </select>
+
+    <div id="main-content-card">
+        <h1 id="greetingTitle">Thank you for taking the time to reflect on this course!</h1>
+        <p id="greetingMessage">Your feedback is invaluable in helping us improve our courses and better serve our students.</p>
+
+        <h4 id="question1">What was the most challenging part of the course?</h4>
+        <textarea name="challenge" rows="4" cols="50" id="challengeInput" placeholder="Describe the most challenging part of the course..."></textarea>
+
+        <h4 id="question2">If you had to pick one, what is one key takeaway from this course, if any?</h4>
+        <textarea name="keyTakeaway" rows="4" cols="50" id="keyTakeawayInput" placeholder="Describe your key takeaway..."></textarea>
+
+        <h4 id="question3">What would you like to see improved in this course?</h4>
+        <textarea name="improvement" rows="4" cols="50" id="improvementInput" placeholder="Describe what you would like to see improved..."></textarea>
+    </div>
+    <script src="index.js"></script>
+</body>
+</html>
