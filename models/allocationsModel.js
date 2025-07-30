@@ -5,7 +5,7 @@ const sequelize = require('../config/database');
 module.exports = (sequelize, DataTypes) => {
   const Allocation = sequelize.define('Allocation', {
     id: {
-      type: DataTypes.STRING,
+      type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },

@@ -58,7 +58,7 @@ exports.getAllocations = async (req, res) => {
     let includeClause = [
       { model: Module, attributes: ['id', 'name', 'half'] }, 
       { model: Class, attributes: ['id', 'name', 'startDate', 'graduationDate'] },
-      { model: Facilitator, attributes: ['id', 'qualification', 'location'], include: [{ model: User, attributes: ['name', 'email'] }] },
+      { model: Facilitator, attributes: ['id', 'qualification', 'location', 'name'], include: [{ model: User, attributes: ['email'] }] },
       { model: Mode, attributes: ['id', 'name'] },
     ];
 
@@ -106,7 +106,7 @@ exports.getAllocationById = async (req, res) => {
       include: [
         { model: Module, attributes: ['id', 'name', 'half'] },
         { model: Class, attributes: ['id', 'name', 'startDate', 'graduationDate'] },
-        { model: Facilitator, attributes: ['id', 'qualification', 'location'], include: [{ model: User, attributes: ['name', 'email'] }] },
+        { model: Facilitator, attributes: ['id', 'qualification', 'location', 'name'], include: [{ model: User, attributes: ['email'] }] },
         { model: Mode, attributes: ['id', 'name'] },
       ],
     });

@@ -1,7 +1,8 @@
 const { ActivityTracker, Allocation, Facilitator, User, Module, Class } = require('../models');
-const { Op } = require('sequelize'); // Import Op for OR conditions
+const { Op } = require('sequelize');
+const { queueAlert } = require('../utils/notificationDispatcher');
+const { getManagerEmails } = require('../services/managerService');
 
-// Helper function to validate status enum values
 const isValidStatus = (status) => ['Done', 'Pending', 'Not Started'].includes(status);
 
 // Create Activity Log
@@ -12,7 +13,7 @@ exports.createActivityLog = async (req, res) => {
             intranetSync, gradeBookStatus } = req.body;
     const { role, id: currentUserId } = req.user;
 
-    // Input validation for mandatory fields based on model's allowNull: false
+    
     if (!allocationId || weekNumber === undefined || weekNumber === null ||
         !formativeOneGrading || !formativeTwoGrading || !summativeGrading ||
         !courseModeration || !intranetSync || !gradeBookStatus) {
@@ -41,11 +42,9 @@ exports.createActivityLog = async (req, res) => {
         return res.status(403).json({ message: 'Forbidden: You can only create logs for your assigned allocations.' });
       }
     } else if (role !== 'manager' && role !== 'admin') {
-      // Only facilitators, managers, or admins can create logs
       return res.status(403).json({ message: 'Forbidden: Only facilitators, managers, or admins can create activity logs.' });
     }
 
-    // Prevent duplicate logs for the same allocation and weekNumber
     const existingLog = await ActivityTracker.findOne({
       where: { allocationId, weekNumber }
     });
@@ -65,6 +64,18 @@ exports.createActivityLog = async (req, res) => {
       gradeBookStatus,
     });
 
+    //trigger alert on submission
+    const managerEmails = await getManagerEmails();
+    await queueAlert(managerEmails, 'log_submitted', {
+      logId: newActivityLog.id,
+      allocationId: newActivityLog.allocationId,
+      weekNumber: newActivityLog.weekNumber,
+      facilitatorEmail: allocation.Facilitator.User.email,
+      facilitatorName: allocation.Facilitator.User.name,
+      moduleName: allocation.Module ? allocation.Module.name : 'N/A',
+      className: allocation.Class ? allocation.Class.name : 'N/A',
+    });
+
     res.status(201).json({
       message: 'Activity log created successfully',
       activityLog: newActivityLog,
@@ -75,11 +86,11 @@ exports.createActivityLog = async (req, res) => {
   }
 };
 
-// Get All Activity Logs (Managers see all, Facilitators see their own)
+// Get All Activity Logs 
 exports.getAllActivityLogs = async (req, res) => {
   try {
     const { role, id: currentUserId } = req.user;
-    const { allocationId, weekNumber, status, facilitatorId } = req.query; // 'status' for generic filter
+    const { allocationId, weekNumber, status, facilitatorId } = req.query; 
 
     let whereClause = {}; 
     let allocationWhereClause = {}; 
@@ -90,7 +101,7 @@ exports.getAllActivityLogs = async (req, res) => {
         include: [
           { model: Module, attributes: ['id', 'name', 'half'] },
           { model: Class, attributes: ['id', 'name'] },
-          { model: Facilitator, attributes: ['id'], include: [{ model: User, attributes: ['name', 'email'] }] }
+          { model: Facilitator, attributes: ['id', 'name'], include: [{ model: User, attributes: ['email'] }] }
         ]
       },
     ];
@@ -134,7 +145,7 @@ exports.getAllActivityLogs = async (req, res) => {
     // Apply allocationWhereClause to the include object
     if (Object.keys(allocationWhereClause).length > 0) {
       includeClause[0].where = allocationWhereClause;
-      includeClause[0].required = true; // Ensure inner join if filtering on associated model
+      includeClause[0].required = true; 
     }
 
 
@@ -168,7 +179,7 @@ exports.getActivityLogById = async (req, res) => {
           include: [
             { model: Module, attributes: ['id', 'name', 'half'] },
             { model: Class, attributes: ['id', 'name'] },
-            { model: Facilitator, attributes: ['id'], include: [{ model: User, attributes: ['name', 'email'] }] }
+            { model: Facilitator, attributes: ['id', 'name'], include: [{ model: User, attributes: ['email'] }] }
           ]
         },
       ],
@@ -256,6 +267,18 @@ exports.updateActivityLog = async (req, res) => {
     }
 
     await activityLog.update(updates);
+//trigger alert on update
+    const managerEmails = await getManagerEmails();
+    await queueAlert(managerEmails, 'log_updated', {
+      logId: activityLog.id,
+      allocationId: activityLog.allocationId,
+      weekNumber: activityLog.weekNumber,
+      facilitatorEmail: activityLog.Allocation.Facilitator.User.email,
+      facilitatorName: activityLog.Allocation.Facilitator.User.name,
+      moduleName: activityLog.Allocation.Module ? activityLog.Allocation.Module.name : 'N/A',
+      className: activityLog.Allocation.Class ? activityLog.Allocation.Class.name : 'N/A',
+      updatedFields: Object.keys(updates),
+    });
 
     res.status(200).json({
       message: 'Activity log updated successfully',
@@ -274,7 +297,7 @@ exports.deleteActivityLog = async (req, res) => {
     const { role, id: currentUserId } = req.user;
 
     const activityLog = await ActivityTracker.findByPk(id, {
-      include: [{ model: Allocation, include: [{ model: Facilitator }] }]
+      include: [{ model: Allocation, include: [{ model: Facilitator }, { model: Module }, { model: Class }] }]
     });
 
     if (!activityLog) {
@@ -290,11 +313,24 @@ exports.deleteActivityLog = async (req, res) => {
         return res.status(403).json({ message: 'Forbidden: You can only delete your own activity logs.' });
       }
     } else if (role !== 'manager') {
-      // Only facilitators, managers, or admins can delete logs
+      // Only facilitators or managers can delete logs
       return res.status(403).json({ message: 'Forbidden: Only facilitators or managers can delete activity logs.' });
     }
 
     await activityLog.destroy();
+
+    //trigger alert on deletion
+    const managerEmails = await getManagerEmails();
+    await queueAlert(managerEmails, 'log_deleted', {
+      logId: activityLog.id,
+      allocationId: activityLog.allocationId,
+      weekNumber: activityLog.weekNumber,
+      facilitatorEmail: activityLog.Allocation.Facilitator.User.email,
+      facilitatorName: activityLog.Allocation.Facilitator.User.name,
+      moduleName: activityLog.Allocation.Module ? activityLog.Allocation.Module.name : 'N/A',
+      className: activityLog.Allocation.Class ? activityLog.Allocation.Class.name : 'N/A',
+    });
+
     res.status(200).json({ message: 'Activity log deleted successfully.' });
   } catch (error) {
     console.error('Error deleting activity log:', error);

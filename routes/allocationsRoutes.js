@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const allocationController = require('../controllers/allocationController');
 const { verifyToken } = require('../middlewares/verifytoken'); 
-const { checkRole } = require('../middlewares/checkRoles'); 
+const { checkRole } = require('../middlewares/checkRole'); 
 
 // Managers can perform CRUD on allocations
 router.post(
