@@ -107,8 +107,6 @@ exports.createModule = async (req, res) => {
  */
 exports.getAllModules = async (req, res) => {
   try {
-    // Assuming 'whereClause' is intended to be empty or handled by other logic
-    // If you intend to filter modules, add parameters and logic here.
     const modules = await Module.findAll({
       order: [['name', 'ASC']], 
     });

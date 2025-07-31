@@ -12,7 +12,7 @@ const ModeModel = require('./modeModel');
 const AllocationModel = require('./allocationsModel');
 const ActivityTrackerModel = require('./activityTrackerModel');
 
-// 🔄 Initialize models
+//Initialize models
 const User = UserModel(sequelize, Sequelize.DataTypes);
 const Manager = ManagerModel(sequelize, Sequelize.DataTypes);
 const Facilitator = FacilitatorModel(sequelize, Sequelize.DataTypes);
@@ -28,7 +28,7 @@ const ActivityTracker = ActivityTrackerModel(sequelize, Sequelize.DataTypes);
 
 //Define Relationships
 
-// ─── User ───────────────────────────────────────────────
+//User
 User.hasOne(Manager, { foreignKey: 'userId' });
 Manager.belongsTo(User, { foreignKey: 'userId' });
 
@@ -38,18 +38,18 @@ Facilitator.belongsTo(User, { foreignKey: 'userId' });
 User.hasOne(Student, { foreignKey: 'userId' });
 Student.belongsTo(User, { foreignKey: 'userId' });
 
-// ─── Manager ↔ Facilitators ─────────────────────────────
+//Manager - Facilitators
 Manager.hasMany(Facilitator, { foreignKey: 'managerId' });
 Facilitator.belongsTo(Manager, { foreignKey: 'managerId' });
 
-// ─── Student ↔ Class & Cohort ───────────────────────────
+//Student - Class & Cohort
 Class.hasMany(Student, { foreignKey: 'classId' });
 Student.belongsTo(Class, { foreignKey: 'classId' });
 
 Cohort.hasMany(Student, { foreignKey: 'cohortId' });
 Student.belongsTo(Cohort, { foreignKey: 'cohortId' });
 
-// ─── Allocation Relationships ───────────────────────────
+//Allocation Relationships
 Module.hasMany(Allocation, { foreignKey: 'moduleId' });
 Allocation.belongsTo(Module, { foreignKey: 'moduleId' });
 
@@ -62,12 +62,12 @@ Allocation.belongsTo(Facilitator, { foreignKey: 'facilitatorId' });
 Mode.hasMany(Allocation, { foreignKey: 'modeId' });
 Allocation.belongsTo(Mode, { foreignKey: 'modeId' });
 
-// ─── ActivityTracker Relationships ───────────────────────────
+//ActivityTracker Relationships
 Allocation.hasMany(ActivityTracker, { foreignKey: 'allocationId' });
 ActivityTracker.belongsTo(Allocation, { foreignKey: 'allocationId' });
 
 
-//Export all models
+//Export 
 module.exports = {
   sequelize,
   Sequelize,

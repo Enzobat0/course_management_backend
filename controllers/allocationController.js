@@ -77,12 +77,10 @@ exports.createAllocation = async (req, res) => {
   try {
     const { moduleId, classId, facilitatorId, trimester, modeId, year } = req.body;
 
-    // Basic input validation
     if (!moduleId || !classId || !facilitatorId || !trimester || !modeId || !year) {
       return res.status(400).json({ message: 'All allocation fields are required.' });
     }
 
-    // Check if the referenced entities actually exist
     const [moduleExists, classExists, facilitatorExists, modeExists] = await Promise.all([
       Module.findByPk(moduleId),
       Class.findByPk(classId),
@@ -214,16 +212,13 @@ exports.getAllocations = async (req, res) => {
       { model: Mode, attributes: ['id', 'name'] },
     ];
 
-    // Build where clause based on query parameters
     if (trimester) whereClause.trimester = trimester;
     if (facilitatorId) whereClause.facilitatorId = facilitatorId;
     if (modeId) whereClause.modeId = modeId;
     if (year) whereClause.year = year;
     if (classId) whereClause.classId = classId; 
 
-    // Role-based Access Control for Viewing
     if (role === 'facilitator') {
-      // If a facilitator, ensure they only see their own allocations
       const facilitatorProfile = await Facilitator.findOne({ where: { userId } });
       if (!facilitatorProfile) {
         return res.status(404).json({ message: 'Facilitator profile not found for this user.' });
@@ -320,7 +315,6 @@ exports.getAllocationById = async (req, res) => {
       return res.status(404).json({ message: 'Allocation not found.' });
     }
 
-    // Facilitator specific access control
     if (role === 'facilitator') {
       const facilitatorProfile = await Facilitator.findOne({ where: { userId } });
       if (!facilitatorProfile || allocation.facilitatorId !== facilitatorProfile.id) {

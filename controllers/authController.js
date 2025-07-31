@@ -86,7 +86,6 @@ const register = async (req, res) => {
   try {
     const { email, password, role } = req.body;
 
-    // Validate base input
     if (!email || !password || !role) {
       return res.status(400).json({ message: 'Email, password, and role are required' });
     }
@@ -97,10 +96,8 @@ const register = async (req, res) => {
       return res.status(409).json({ message: 'User already exists' });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
     const newUser = await User.create({
       email,
       password: hashedPassword,

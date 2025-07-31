@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
     },
     attendance: {
-      type: DataTypes.JSON, // To store array of objects like [{"week1": "done"}, {"week2: "done"}]
+      type: DataTypes.JSON,
       allowNull: true, 
       defaultValue: [], 
     },

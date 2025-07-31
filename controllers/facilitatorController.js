@@ -123,7 +123,6 @@ exports.getFacilitatorById = async (req, res) => {
       return res.status(404).json({ message: 'Facilitator not found.' });
     }
 
-    // Facilitators can only view their own profile
     if (role === 'facilitator' && facilitator.userId !== currentUserId) {
       return res.status(403).json({ message: 'Forbidden: You can only view your own facilitator profile.' });
     }
@@ -209,12 +208,12 @@ exports.updateFacilitator = async (req, res) => {
       return res.status(404).json({ message: 'Facilitator not found.' });
     }
 
-    //  Facilitators can only update their own profile
+
     if (role === 'facilitator' && facilitator.userId !== currentUserId) {
       return res.status(403).json({ message: 'Forbidden: You can only update your own facilitator profile.' });
     }
 
-    // If managerId is being updated, ensure the new manager exists
+    // ensure the new managerId exists
     if (managerId) {
         const managerExists = await Manager.findByPk(managerId);
         if (!managerExists) {
@@ -222,7 +221,7 @@ exports.updateFacilitator = async (req, res) => {
         }
     }
 
-    // Managers can update any facilitator. Facilitators can update their name, qualification, location.
+    // Managers can update any facilitator,facilitators can update their name, qualification, location.
     if (role === 'facilitator') {
         await facilitator.update({
             name: name || facilitator.name,

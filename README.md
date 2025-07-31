@@ -190,6 +190,7 @@ Below is a summary of the main API endpoints with example requests and responses
 
     `500 Internal Server Error`: Server-side issue.
 
+    **Access**: Public
 
     b. **Login User** `/api/auth/login`
 
@@ -204,11 +205,15 @@ Below is a summary of the main API endpoints with example requests and responses
     * `404 Not Found`: User not found.
 
     * `500 Internal Server Error`: Server-side issue.
+    
+    **Access**: Public
 
 
 2.  ### Course Allocations `/api/allocations`
 
     All Allocation endpoints require a JWT in the Authorization: Bearer `<token>` header.
+
+    **Access**: Manager and Facilitators
 
     Common Status Codes:
 
@@ -225,6 +230,8 @@ Below is a summary of the main API endpoints with example requests and responses
 3. ### Facilitator Activity Tracker `/api/activity-tracker`
     All Activity Tracker endpoints require a JWT in the Authorization: Bearer `<token>` header.
 
+    **Access**: Facilitators and Managers
+
     Common Status Codes:
 
     `201 Created`: Activity log successfully created.
@@ -240,6 +247,25 @@ Below is a summary of the main API endpoints with example requests and responses
     `409 Conflict`: Log for this allocation and week already exists.
 
     `500 Internal Server Error`: Server-side issue.
+4. ### Modules `/api/modules`
+    All Module endpoints require a JWT in the Authorization: Bearer `<token>` header.
+
+    **Access**: Manager Only
+
+5. ### Classes `/api/classes`
+    All Class endpoints require a JWT in the Authorization: Bearer <token> header.
+
+    **Accesss**: Managers only
+
+6. ### Facilitators `/api/facilitators`
+    All Facilitator endpoints require a JWT in the Authorization: Bearer <token> header.
+
+    **Access**: Managers & Facilitators
+
+7. ### Students `/api/students`
+    All Student endpoints require a JWT in the Authorization: Bearer <token> header.
+
+    **Access**: Manager and Students
 
 
 ## Running Tests
@@ -252,7 +278,7 @@ Note: Tests connect to DB_NAME_TEST and use sequelize.sync({ force: true }) to e
 
 ## [Student Reflection Page](https://studentreflection.netlify.app/)
 
-## [Video Walkthrough]()
+## [Video Walkthrough](https://youtu.be/Bi9yKRoggYQ)
 
 ## Assumptions and Limitations
 * Role Management: User roles (manager, facilitator, student) are strictly enforced for API access.

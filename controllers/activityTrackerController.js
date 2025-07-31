@@ -120,7 +120,6 @@ exports.createActivityLog = async (req, res) => {
       return res.status(400).json({ message: 'Invalid status value provided. Must be Done, Pending, or Not Started.' });
     }
 
-    // Check if allocation exists and get facilitator info
     const allocation = await Allocation.findByPk(allocationId, {
       include: [{ model: Facilitator, include: [{ model: User }] }]
     });
@@ -128,7 +127,7 @@ exports.createActivityLog = async (req, res) => {
       return res.status(404).json({ message: 'Allocation not found.' });
     }
 
-    // Facilitator access control: Must be the assigned facilitator for this allocation
+    // Must be the assigned facilitator for this allocation
     if (role === 'facilitator') {
       const facilitatorProfile = await Facilitator.findOne({ where: { userId: currentUserId } });
       if (!facilitatorProfile || allocation.facilitatorId !== facilitatorProfile.id) {
@@ -277,13 +276,12 @@ exports.getAllActivityLogs = async (req, res) => {
     
 
 
-    // Role-based Access Control for Viewing
     if (role === 'facilitator') {
       const facilitatorProfile = await Facilitator.findOne({ where: { userId: currentUserId } });
       if (!facilitatorProfile) {
         return res.status(404).json({ message: 'Facilitator profile not found for this user.' });
       }
-      // Filter by allocations assigned to this facilitator
+
       allocationWhereClause.facilitatorId = facilitatorProfile.id;
     } else if (role === 'manager') {
       if (facilitatorId) {
@@ -375,10 +373,8 @@ exports.getActivityLogById = async (req, res) => {
       return res.status(404).json({ message: 'Activity log not found.' });
     }
 
-    // Facilitator access control
     if (role === 'facilitator') {
       const facilitatorProfile = await Facilitator.findOne({ where: { userId: currentUserId } });
-      // Ensure the log belongs to an allocation assigned to this facilitator
       if (!facilitatorProfile || !activityLog.Allocation || !activityLog.Allocation.Facilitator ||
           activityLog.Allocation.Facilitator.id !== facilitatorProfile.id) {
         return res.status(403).json({ message: 'Forbidden: You can only view your own activity logs.' });
@@ -494,20 +490,17 @@ exports.updateActivityLog = async (req, res) => {
       return res.status(404).json({ message: 'Activity log not found.' });
     }
 
-    // Facilitator access control: Must be the assigned facilitator for this log's allocation
+    // Must be the assigned facilitator for this log's allocation
     if (role === 'facilitator') {
       const facilitatorProfile = await Facilitator.findOne({ where: { userId: currentUserId } });
-      // Need to ensure activityLog.Allocation and activityLog.Allocation.Facilitator exist
       if (!facilitatorProfile || !activityLog.Allocation || !activityLog.Allocation.Facilitator ||
           activityLog.Allocation.Facilitator.id !== facilitatorProfile.id) {
         return res.status(403).json({ message: 'Forbidden: You can only update your own activity logs.' });
       }
     } else if (role !== 'manager') {
-      // Only facilitators, managers can update logs
       return res.status(403).json({ message: 'Forbidden: Only facilitators or managers can update activity logs.' });
     }
 
-    // Validate enum statuses if provided
     const updates = {};
     if (attendance !== undefined) updates.attendance = attendance;
     if (weekNumber !== undefined && weekNumber !== null) updates.weekNumber = weekNumber;
@@ -610,16 +603,14 @@ exports.deleteActivityLog = async (req, res) => {
       return res.status(404).json({ message: 'Activity log not found.' });
     }
 
-    // Facilitator access control, must be the assigned facilitator for this log's allocation
+    
     if (role === 'facilitator') {
       const facilitatorProfile = await Facilitator.findOne({ where: { userId: currentUserId } });
-      // Need to ensure activityLog.Allocation and activityLog.Allocation.Facilitator exist
       if (!facilitatorProfile || !activityLog.Allocation || !activityLog.Allocation.Facilitator ||
           activityLog.Allocation.Facilitator.id !== facilitatorProfile.id) {
         return res.status(403).json({ message: 'Forbidden: You can only delete your own activity logs.' });
       }
     } else if (role !== 'manager') {
-      // Only facilitators or managers can delete logs
       return res.status(403).json({ message: 'Forbidden: Only facilitators or managers can delete activity logs.' });
     }
 

@@ -221,11 +221,11 @@ exports.updateStudent = async (req, res) => {
       return res.status(404).json({ message: 'Student not found.' });
     }
 
-    // Students can only update their own profile
+    // students can only update their ownprofile
     if (role === 'student' && student.userId !== currentUserId) {
       return res.status(403).json({ message: 'Forbidden: You can only update your own student profile.' });
     }
-    // Managers can update any student. Students can update their name.
+    // managers can update any student and students can only update their name.
     if (role === 'student') {
         await student.update({ name: name || student.name });
     } else { 
